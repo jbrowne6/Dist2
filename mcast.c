@@ -12,7 +12,7 @@
 
 # include "mutils.h"
 
-int main()
+int main(int argc, char *argv[])
 {
     struct sockaddr_in name;
     struct sockaddr_in send_addr;
@@ -30,9 +30,16 @@ int main()
     char               mess_buf[MAX_MESS_LEN];
     char               input_buf[80];
 
+	long num_packets; //the number of packets to send.
+	int machine_index;
+	int num_machines;
+	int loss_rate;
+	int state = 0;
 ////////////////////////////////////////////////////////////////////////
 //get input from user.
 ////////////////////////////////////////////////////////////////////////
+
+	get_cli(&num_packets, &machine_index, &num_machines, &loss_rate, argv, argc);
 
 ///////////////////////////////////////////////////////////////////////
 //setup networking
@@ -107,7 +114,7 @@ if (state == 0){
 //state 1 will be when everyone learns all the unicast IPs.
 //machine id 1 will move to state 2 all others will move to state 4
 /////////////////////////////////////////////////////////////////////////////////
-}else if{ state == 1){
+}else if( state == 1){
 
 /////////////////////////////////////////////////////////////////////////////////
 //State 2 means you have the token.

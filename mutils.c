@@ -9,10 +9,12 @@
 //    Date: 2016/10/10
 //
 ////////////////////////////////////////////////////////////////////////////////
+#include "mutils.h"
 
 void tx_desc(desc_t* desc, int sr, int addr)
 {
-    struct sockaddr_in send_addr;
+	NULL;
+/*    struct sockaddr_in send_addr;
     send_addr.sin_family = AF_INET;
     send_addr.sin_addr.s_addr = addr;
     send_addr.sin_port = htons (PORT);
@@ -25,11 +27,13 @@ void tx_desc(desc_t* desc, int sr, int addr)
     memcpy(buff+4, desc->p_data, desc->header.size); //copy the data
     sendto_dbg(sr, buff, BUFF_SIZE, 0, (struct sockaddr *) &send_addr,
                 sizeof (send_addr));
+				*/
 }
 
 int rx_desc_probe(desc_t* desc, int sr)
 {
-
+	NULL;
+/*
     fd_set mask, temp_mask, dummy_mask;
     FD_ZERO (&mask);
     FD_ZERO (&dummy_mask);
@@ -64,8 +68,33 @@ int rx_desc_probe(desc_t* desc, int sr)
             return 0;
         }
     }
+	*/
 }
 
+////////////////////////////////////////////////////////////////////////////
+//This is used to process the CLI.
+//its not very robust, will break if wrong input allowed.
+////////////////////////////////////////////////////////////////////////////
+void get_cli(long *num_packets, int *machine_index, int *num_machines, int *loss_rate, char *argv[], int argc)
+{
+if (argc < 5)
+    {
+    perror
+    ("mcast <num of packets> <machine index> <number of machines> <loss rate> <loss_rate_percent>\n\
+	where:\n\
+	<num of packets> is the number of packets to send\n\
+	<machine index> is (1-10)\n\
+	<number of machines> is (2-10)\n\
+	<loss rate> is the percent, 0-20, of recieve loss");
+    exit (1);
+    }
+//convert input to values.
+	*num_packets = strtol(argv[1], NULL, 0);
+	*machine_index = (int) strtol (argv[2], NULL, 0);
+	*num_machines = (int) strtol (argv[3], NULL, 0);
+	*loss_rate = (int) strtol (argv[4], NULL, 0);
+
+}
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  Revsion History
