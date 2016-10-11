@@ -1,0 +1,152 @@
+James Browne
+Eric Carlson
+
+Data structures:
+
+	Total packet size is 1400 bytes
+	Packet header structure 32 bits total (4 bytes):
+	+-------+----------------+-------------------+----------------+--------------------
+	|	|                |                   |                |
+	|  UDP  | 4 bit MSG Flag |  12bit MSG Length | 16 bits MSG ID | MSG Data
+	|	|                |                   |                |
+	+-------+----------------+-------------------+----------------+---------------------
+	____________________________Header____________________________| 
+
+		  
+
+#define PACKET_TYPE_HELLO   0x1
+#define PACKET_TYPE_BYE     0x2
+#define PACKET_TYPE_BUSY    0x3
+#define PACKET_TYPE_ACK     0x4
+#define PACKET_TYPE_NACK    0x5
+#define PACKET_TYPE_DATA    0x6
+#define PACKET_TYPE_EOF     0x7
+#define PACKET_TYPE_EMPTY   0x8
+
+	           +-------------------------+
+	MSG Flag   |  VAL  |   MEANING       |
+		   |  0x1  |   hello         |
+		   |  0x2  |   bye           |
+		   |  0x3  |   busy          |
+		   |  0x4  |   ack           |
+		   |  0x5  |   nack          |
+		   |  0x6  |   data          |
+                   |  0x7  |   EOF           |
+                   |  0x8  |   Empty         |
+	           +-------------------------+      
+	MSG Length |	12 bit integer       |    Indicates length of actual incoming data in bytes
+                   +-------------------------+
+	MSG ID     |    16 bit integer       |    Indicates the message ID in the current window
+	           +-------------------------+
+	
+
+
+
+	Sliding Window:
+
+		Circular queues:
+
+
+		       read window start
+		   	|
+		+-------------------+
+		| P4 | P1 | P2 | P3 | circular queue of size 4, matching size of window, receives packets
+		+-------------------+
+		  |
+		read window end
+
+		+---------------+
+		| 1 | 1 | 1 | 1 | as packets in the read window arrive their corresponding place in the array is marked with an n
+		+---------------+
+	  	 P1  P2  P3  P4
+
+				
+
+	* rcv will use two circular arrays of size read window size (denoted x in pseudo code). 
+	  One is used to store incoming packets in id order (mybuffer). The other is used to keep track of which spots in mybuffer have 
+	  been received (statusbuffer). A 0 indicates not received, 1 inidicates received. See below for the logic.
+.
+	* ncp will use one circular array of size window size. Used to store transmitted packets in id order (mybuffer). 
+
+
+
+General Algorithm: Based off of sliding window
+
+ncp state flow:
+
+	State 0: send "Hello" packet to specified IP
+		Listen for packet:
+			if packet is "Hello":
+				if not "EOF":
+					Move to State 1
+				else:
+					Wait for timeout
+					Notify user
+					Jump to State 0
+			else:
+				timeout
+				Jump to State 0
+
+
+	State 1: Send a window of n packets
+		Listen for rcv:
+			if ack:
+				if at EOF:
+					say goodbye to rcv
+					exit
+				slide window over number of packets acked
+			else if nack:
+				resend nacked packet
+			else if timeout:
+				exit
+
+rcv state flow:
+
+	State 0: wait for "Hello"
+		Listen for packet:
+			if packet is "Hello":
+				Send "Hello" to ncp
+				Move to state 1
+			else:
+				Drop packet and reset
+			
+	State 1: 
+		Listen for packet:
+			if packet is "Hello":
+				if from ncp IP:
+					send "Hello" to ncp
+					Jump to state 1
+				else:
+					Send "Hello" and "EOF"
+
+			if packet is "Data":
+				Jump to state 2
+
+			if no packet for timeout:
+				Jump to state 0
+	State 2: 
+		Listen for packet:
+			Read x packets off network buffer:
+				foreach packet in x:
+					if packet is "Hello":
+						send "Hello" and "EOF" to sender
+						continue
+					put packet in mybuffer[packetid]
+					update packetstatusbuffer
+				send ack for contiguous packets
+				if last contiguous packet is EOF:
+					Jump to state 0
+				send nack for missing packets
+			if no packets:
+				wait for timeout
+				Jump to state 0 
+
+					
+					
+					
+				
+			
+				
+			
+	
+					
